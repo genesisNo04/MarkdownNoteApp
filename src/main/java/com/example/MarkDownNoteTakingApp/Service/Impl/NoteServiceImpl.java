@@ -36,6 +36,6 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public List<Note> getAllNote() {
-        return List.of();
+        return noteRepository.findAll();
     }
 }

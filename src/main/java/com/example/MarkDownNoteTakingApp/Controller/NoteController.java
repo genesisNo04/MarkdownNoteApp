@@ -1,7 +1,9 @@
 package com.example.MarkDownNoteTakingApp.Controller;
 
+import com.example.MarkDownNoteTakingApp.DTO.GrammarIssueDTO;
 import com.example.MarkDownNoteTakingApp.DTO.NoteDTO;
 import com.example.MarkDownNoteTakingApp.Modal.Note;
+import com.example.MarkDownNoteTakingApp.Service.Impl.GrammarCheckService;
 import com.example.MarkDownNoteTakingApp.Service.Impl.MarkdownService;
 import com.example.MarkDownNoteTakingApp.Service.NoteService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @RestController
 @RequestMapping("/v1/note")
@@ -22,6 +25,9 @@ public class NoteController {
 
     @Autowired
     private MarkdownService markdownService;
+
+    @Autowired
+    private GrammarCheckService grammarCheckService;
 
     @PostMapping("/upload")
     public ResponseEntity<NoteDTO> createNewNoteWithUpload(@RequestParam("file") MultipartFile file) throws IOException {
@@ -43,10 +49,32 @@ public class NoteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @PostMapping
-    public ResponseEntity<NoteDTO> createNote(@RequestBody NoteDTO noteDTO) {
-        NoteDTO response = new NoteDTO();
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @GetMapping
+    public ResponseEntity<List<NoteDTO>> retrieveAllNotes() {
+        List<NoteDTO> notes = noteService.getAllNote().stream().map(note -> new NoteDTO(note.getTitle(), note.getMarkdownContent(), note.getHtmlContent(), note.getCreatedDateTime(), note.getModifiedDateTime())).toList();
+        return ResponseEntity.ok(notes);
+    }
+
+    @PostMapping("/grammar")
+    public ResponseEntity<List<GrammarIssueDTO>> createNote(@RequestParam("file") MultipartFile file) throws IOException {
+        String markdownContent = new String(file.getBytes(), StandardCharsets.UTF_8);
+        markdownContent = markdownContent.replace("\\n", "\n");
+
+        try {
+            var matches = grammarCheckService.checkGrammar(markdownContent);
+
+            var issues = matches.stream()
+                    .map(match -> new GrammarIssueDTO(
+                            match.getFromPos(),
+                            match.getToPos(),
+                            match.getMessage(),
+                            match.getSuggestedReplacements().isEmpty() ? null : match.getSuggestedReplacements().get(0)
+                    )).toList();
+
+            return ResponseEntity.ok(issues);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
 }
