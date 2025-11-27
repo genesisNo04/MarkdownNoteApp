@@ -28,8 +28,8 @@ public class NoteController {
 
         String fileName = file.getOriginalFilename();
         String markdownContent = new String(file.getBytes(), StandardCharsets.UTF_8);
+        markdownContent = markdownContent.replace("\\n", "\n");
         String htmlContent = markdownService.renderToHtml(markdownContent);
-
         Note note = new Note(fileName, markdownContent, htmlContent, fileName);
         noteService.createNote(note);
 
