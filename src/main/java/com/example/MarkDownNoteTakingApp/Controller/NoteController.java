@@ -49,6 +49,13 @@ public class NoteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<NoteDTO> retrieveNoteById(@PathVariable Long id) {
+        Note note = noteService.getNoteById(id);
+        NoteDTO response = new NoteDTO(note.getTitle(), note.getMarkdownContent(), note.getHtmlContent(), note.getCreatedDateTime(), note.getModifiedDateTime());
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
     public ResponseEntity<List<NoteDTO>> retrieveAllNotes() {
         List<NoteDTO> notes = noteService.getAllNote().stream().map(note -> new NoteDTO(note.getTitle(), note.getMarkdownContent(), note.getHtmlContent(), note.getCreatedDateTime(), note.getModifiedDateTime())).toList();

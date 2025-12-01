@@ -1,5 +1,6 @@
 package com.example.MarkDownNoteTakingApp.Service.Impl;
 
+import com.example.MarkDownNoteTakingApp.Exception.NoResourceFound;
 import com.example.MarkDownNoteTakingApp.Modal.Note;
 import com.example.MarkDownNoteTakingApp.Repository.NoteRepository;
 import com.example.MarkDownNoteTakingApp.Service.NoteService;
@@ -31,7 +32,8 @@ public class NoteServiceImpl implements NoteService {
 
     @Override
     public Note getNoteById(Long id) {
-        return null;
+        Note note = noteRepository.findById(id).orElseThrow(() -> new NoResourceFound("Note does not exist"));
+        return note;
     }
 
     @Override
